@@ -13,7 +13,7 @@
         }
 
         body {
-            background-color: #05050d;
+            background: radial-gradient(circle at center, #120e16 0%, #05050d 100%);
             color: #00f0ff;
             display: flex;
             flex-direction: column;
@@ -24,34 +24,64 @@
         }
 
         .title {
-            font-size: 1.8rem;
+            font-size: 2.2rem;
             font-weight: bold;
-            color: #00f0ff;
-            text-shadow: 0 0 10px rgba(0, 240, 255, 0.5);
+            background: linear-gradient(45deg, #00f0ff, #7b2cbf, #c9184a);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
+            text-shadow: 0 0 20px rgba(123, 44, 191, 0.4);
         }
 
-        canvas {
-            background-color: #05050d;
+        .canvas-container {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
+            padding: 10px;
+            box-shadow: 0 0 30px rgba(123, 44, 191, 0.2);
             margin: 10px 0;
         }
 
+        canvas {
+            display: block;
+        }
+
         .status-box {
-            font-size: 1rem;
-            color: #ffaa00;
+            font-size: 1.05rem;
+            color: #e0e0e0;
             background: rgba(255, 255, 255, 0.05);
-            padding: 12px 20px;
-            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 16px;
             max-width: 650px;
             width: 100%;
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border: 1px solid rgba(0, 240, 255, 0.2);
-            min-height: 50px;
+            min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .api-config {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+            max-width: 650px;
+            margin-bottom: 15px;
+        }
+
+        .api-config input {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px dashed #7b2cbf;
+            background: rgba(0, 0, 0, 0.5);
+            color: #888;
+            font-size: 0.85rem;
         }
 
         .input-container {
@@ -63,186 +93,254 @@
 
         input[type="text"] {
             flex: 1;
-            padding: 12px 16px;
-            border-radius: 8px;
-            border: 1px solid #00f0ff;
-            background-color: #0d0d1a;
+            padding: 14px 18px;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            background-color: rgba(13, 13, 26, 0.8);
             color: #fff;
             font-size: 1rem;
             outline: none;
+            transition: all 0.3s ease;
         }
 
         input[type="text"]:focus {
-            box-shadow: 0 0 10px rgba(0, 240, 255, 0.4);
+            border-color: #00f0ff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
         }
 
         button {
-            padding: 12px 24px;
-            border-radius: 8px;
-            border: 1px solid #00f0ff;
-            background-color: transparent;
-            color: #00f0ff;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: none;
+            background: linear-gradient(135deg, #7b2cbf, #c9184a);
+            color: #fff;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(201, 24, 74, 0.4);
         }
 
         button:hover {
-            background-color: #00f0ff;
-            color: #05050d;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(123, 44, 191, 0.6);
         }
 
         button:disabled {
-            border-color: #555;
-            color: #555;
+            background: #333;
+            color: #777;
             cursor: not-allowed;
             box-shadow: none;
+            transform: none;
         }
     </style>
 </head>
 <body>
 
-    <div class="title">ZENITH INTELLIGENCE</div>
-    <canvas id="faceCanvas" width="400" height="400"></canvas>
-    <div id="status" class="status-box">✅ ZENITH جاهز ومتصل! اكتب سؤالك للبدء.</div>
+    <div class="title">ZENITH AI</div>
+    
+    <div class="canvas-container">
+        <canvas id="faceCanvas" width="320" height="320"></canvas>
+    </div>
+
+    <!-- مكان وضع مفتاح الـ API للتحكم به دون تسريبه -->
+    <div class="api-config">
+        <input type="password" id="apiKeyInput" placeholder="أدخل مفتاح HuggingFace Token لحفظه بمتصفحك..." onchange="saveKey()">
+    </div>
+
+    <div id="status" class="status-box">✅ أهلاً بك! أنا ZENITH، أدخل مفتاحك بالأسفل ثم اسألني أي سؤال.</div>
 
     <div class="input-container">
-        <input type="text" id="userInput" placeholder="اكتب رسالتك هنا..." onkeydown="if(event.key==='Enter') sendMessage()">
-        <button id="sendBtn" onclick="sendMessage()">إرسال / Send</button>
+        <input type="text" id="userInput" placeholder="اكتب سؤالك هنا..." onkeydown="if(event.key==='Enter') sendMessage()">
+        <button id="sendBtn" onclick="sendMessage()">إرسال</button>
     </div>
 
     <script>
-        // إعدادات الحالة العامة
         let state = "idle"; // idle | thinking | speaking
         let blinkState = false;
         const canvas = document.getElementById('faceCanvas');
         const ctx = canvas.getContext('2d');
         const statusLbl = document.getElementById('status');
         const userInput = document.getElementById('userInput');
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const sendBtn = document.getElementById('sendBtn');
 
-        // حلقة الرمش المستمرة
+        const MODEL_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-1.5B-Instruct";
+
+        // تحميل المفتاح المحفوظ في ذاكرة المتصفح محلية
+        window.onload = () => {
+            const savedKey = localStorage.getItem('ZENITH_API_KEY');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+            }
+        };
+
+        function saveKey() {
+            localStorage.setItem('ZENITH_API_KEY', apiKeyInput.value.trim());
+        }
+
+        // حلقة الرمش
         setInterval(() => {
             blinkState = true;
             setTimeout(() => { blinkState = false; }, 120);
-        }, 3800);
+        }, 4000);
 
-        // تحريك الوجه
+        // رسم وجه ZENITH المتوهج
         function animateFace() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const cx = 200, cy = 200;
+            const cx = 160, cy = 160;
 
             let color = "#00f0ff";
-            if (state === "speaking") color = "#00ffaa";
-            if (state === "thinking") color = "#ff2a6d";
+            let glowColor = "rgba(0, 240, 255, 0.5)";
 
-            // رسم محيط الوجه
+            if (state === "speaking") {
+                color = "#00ffaa";
+                glowColor = "rgba(0, 255, 170, 0.6)";
+            } else if (state === "thinking") {
+                color = "#ff2a6d";
+                glowColor = "rgba(255, 42, 109, 0.6)";
+            }
+
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = glowColor;
+
+            // إطار الوجه
             ctx.beginPath();
-            ctx.ellipse(cx, cy - 10, 100, 130, 0, 0, 2 * Math.PI);
+            ctx.ellipse(cx, cy - 10, 80, 110, 0, 0, 2 * Math.PI);
             ctx.strokeStyle = color;
             ctx.lineWidth = 3;
             ctx.stroke();
 
             const eyeY = cy - 25;
-            const lEyeX = cx - 40, rEyeX = cx + 40;
+            const lEyeX = cx - 32, rEyeX = cx + 32;
 
-            // رسم العيون (الرمش أو الفتح)
+            // العيون
             ctx.fillStyle = color;
             if (blinkState) {
                 ctx.beginPath();
-                ctx.moveTo(lEyeX - 15, eyeY); ctx.lineTo(lEyeX + 15, eyeY);
-                ctx.moveTo(rEyeX - 15, eyeY); ctx.lineTo(rEyeX + 15, eyeY);
+                ctx.moveTo(lEyeX - 12, eyeY); ctx.lineTo(lEyeX + 12, eyeY);
+                ctx.moveTo(rEyeX - 12, eyeY); ctx.lineTo(rEyeX + 12, eyeY);
                 ctx.stroke();
             } else {
-                // العين اليمنى واليسرى
                 ctx.beginPath();
-                ctx.ellipse(lEyeX, eyeY, 18, 9, 0, 0, 2 * Math.PI);
-                ctx.ellipse(rEyeX, eyeY, 18, 9, 0, 0, 2 * Math.PI);
+                ctx.ellipse(lEyeX, eyeY, 14, 7, 0, 0, 2 * Math.PI);
+                ctx.ellipse(rEyeX, eyeY, 14, 7, 0, 0, 2 * Math.PI);
                 ctx.stroke();
 
                 ctx.beginPath();
-                ctx.arc(lEyeX, eyeY, 6, 0, 2 * Math.PI);
-                ctx.arc(rEyeX, eyeY, 6, 0, 2 * Math.PI);
+                ctx.arc(lEyeX, eyeY, 5, 0, 2 * Math.PI);
+                ctx.arc(rEyeX, eyeY, 5, 0, 2 * Math.PI);
                 ctx.fill();
             }
 
-            // رسم الحواجب
-            ctx.beginPath();
-            ctx.moveTo(lEyeX - 20, eyeY - 20); ctx.lineTo(lEyeX + 15, eyeY - 24);
-            ctx.moveTo(rEyeX - 15, eyeY - 24); ctx.lineTo(rEyeX + 20, eyeY - 20);
-            ctx.stroke();
-
-            // رسم الأنف
+            // الأنف
             ctx.beginPath();
             ctx.moveTo(cx, eyeY + 10);
-            ctx.lineTo(cx - 8, cy + 25);
-            ctx.lineTo(cx + 5, cy + 25);
+            ctx.lineTo(cx - 5, cy + 18);
+            ctx.lineTo(cx + 4, cy + 18);
             ctx.stroke();
 
-            // رسم الفم
-            const mouthY = cy + 60;
+            // الفم
+            const mouthY = cy + 45;
             if (state === "speaking") {
-                const amplitude = Math.abs(Math.sin(Date.now() / 100)) * 22 + 4;
+                const amplitude = Math.abs(Math.sin(Date.now() / 80)) * 18 + 4;
                 ctx.beginPath();
-                ctx.ellipse(cx, mouthY, 28, amplitude / 2, 0, 0, 2 * Math.PI);
-                ctx.fillStyle = "#101020";
+                ctx.ellipse(cx, mouthY, 20, amplitude / 2, 0, 0, 2 * Math.PI);
+                ctx.fillStyle = "#120e16";
                 ctx.fill();
                 ctx.stroke();
             } else {
                 ctx.beginPath();
-                ctx.moveTo(cx - 28, mouthY);
-                ctx.lineTo(cx + 28, mouthY);
+                ctx.moveTo(cx - 20, mouthY);
+                ctx.lineTo(cx + 20, mouthY);
                 ctx.stroke();
             }
 
+            ctx.shadowBlur = 0;
             requestAnimationFrame(animateFace);
         }
 
-        // بدء التحريك
         animateFace();
 
-        // إرسال وتوليد الرد
+        // إرسال السؤال وإرجاع الإجابة من الـ API
         async function sendMessage() {
             const text = userInput.value.trim();
-            if (!text) return;
+            const token = apiKeyInput.value.trim();
+
+            if (!text || state === "thinking") return;
+
+            if (!token) {
+                statusLbl.innerText = "⚠️ يرجى أدخال مفتاح Hugging Face Token أولاً في الخانة المخصصة!";
+                statusLbl.style.color = "#ffaa00";
+                return;
+            }
 
             userInput.value = "";
             statusLbl.innerText = `أنت: ${text}`;
             statusLbl.style.color = "#ffffff";
             state = "thinking";
+            sendBtn.disabled = true;
 
-            // فحص هل اللغة عربية
             const isArabic = /[\u0600-\u06FF]/.test(text);
 
-            // توليد الرد الذكي (يمكنك ربطه هنا بـ API الخاص بك)
-            setTimeout(() => {
-                let responseText = isArabic 
-                    ? "مرحباً بك! أنا ZENITH، مساعدك الذكي. كيف يمكنني مساعدتك اليوم؟"
-                    : "Hello! I am ZENITH, your AI assistant. How can I help you today?";
+            try {
+                const response = await fetch(MODEL_URL, {
+                    method: "POST",
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        inputs: text,
+                        parameters: { max_new_tokens: 90, temperature: 0.7 }
+                    })
+                });
 
-                statusLbl.innerText = `ZENITH: ${responseText}`;
+                const data = await response.json();
+                let aiResponse = "";
+
+                if (Array.isArray(data) && data[0]?.generated_text) {
+                    aiResponse = data[0].generated_text;
+                } else if (data.generated_text) {
+                    aiResponse = data.generated_text;
+                } else {
+                    aiResponse = isArabic ? "أنا هنا لمساعدتك! كيف أستطيع خدمتك في هذا السؤال؟" : "I am here to help you! How can I assist you?";
+                }
+
+                statusLbl.innerText = `ZENITH: ${aiResponse}`;
                 statusLbl.style.color = "#00ffaa";
 
-                // تحويل النص إلى صوت
-                speakText(responseText, isArabic);
-            }, 1000);
+                speakText(aiResponse, isArabic);
+
+            } catch (error) {
+                statusLbl.innerText = "❌ حدث خطأ أثناء الاتصال بالذكاء الاصطناعي.";
+                statusLbl.style.color = "#ff2a6d";
+                state = "idle";
+                sendBtn.disabled = false;
+            }
         }
 
         // تحويل النص إلى صوت بالمتصفح
         function speakText(text, isArabic) {
             if ('speechSynthesis' in window) {
-                window.speechSynthesis.cancel(); // إيقاف أي صوت سابق
+                window.speechSynthesis.cancel();
                 const utterance = new SpeechSynthesisUtterance(text);
                 utterance.lang = isArabic ? 'ar-SA' : 'en-US';
                 
                 utterance.onstart = () => { state = "speaking"; };
-                utterance.onend = () => { state = "idle"; };
-                utterance.onerror = () => { state = "idle"; };
+                utterance.onend = () => { 
+                    state = "idle"; 
+                    sendBtn.disabled = false;
+                };
+                utterance.onerror = () => { 
+                    state = "idle"; 
+                    sendBtn.disabled = false;
+                };
 
                 window.speechSynthesis.speak(utterance);
             } else {
                 state = "idle";
+                sendBtn.disabled = false;
             }
         }
     </script>
