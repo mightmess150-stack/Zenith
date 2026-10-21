@@ -13,7 +13,14 @@
         }
 
         body {
-            background: radial-gradient(circle at center, #120e16 0%, #05050d 100%);
+            /* دمج الخلفية بين الأسود الداكن، البنفسجي الملكي، والأحمر العنابي العميق */
+            background: linear-gradient(135deg, 
+                #05050d 0%, 
+                #240e35 35%, 
+                #4a0e2e 70%, 
+                #05050d 100%
+            );
+            background-attachment: fixed;
             color: #00f0ff;
             display: flex;
             flex-direction: column;
@@ -26,7 +33,7 @@
         .title {
             font-size: 2.2rem;
             font-weight: bold;
-            background: linear-gradient(45deg, #00f0ff, #7b2cbf, #c9184a);
+            background: linear-gradient(45deg, #00f0ff, #7b2cbf, #ff2a6d);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             margin-bottom: 10px;
@@ -34,12 +41,13 @@
         }
 
         .canvas-container {
-            background: rgba(255, 255, 255, 0.02);
-            backdrop-filter: blur(15px);
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 50%;
-            padding: 10px;
-            box-shadow: 0 0 30px rgba(123, 44, 191, 0.2);
+            padding: 15px;
+            box-shadow: 0 0 40px rgba(123, 44, 191, 0.3), inset 0 0 20px rgba(201, 24, 74, 0.2);
             margin: 15px 0;
         }
 
@@ -50,20 +58,20 @@
         .status-box {
             font-size: 1.05rem;
             color: #e0e0e0;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
+            background: rgba(13, 13, 26, 0.6);
+            backdrop-filter: blur(15px);
             padding: 15px 20px;
             border-radius: 16px;
             max-width: 650px;
             width: 100%;
             text-align: center;
             margin-bottom: 20px;
-            border: 1px solid rgba(0, 240, 255, 0.2);
+            border: 1px solid rgba(123, 44, 191, 0.3);
             min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
         .input-container {
@@ -77,8 +85,8 @@
             flex: 1;
             padding: 14px 18px;
             border-radius: 12px;
-            border: 1px solid rgba(0, 240, 255, 0.4);
-            background-color: rgba(13, 13, 26, 0.8);
+            border: 1px solid rgba(123, 44, 191, 0.5);
+            background-color: rgba(10, 9, 12, 0.85);
             color: #fff;
             font-size: 1rem;
             outline: none;
@@ -86,8 +94,8 @@
         }
 
         input[type="text"]:focus {
-            border-color: #00f0ff;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+            border-color: #ff2a6d;
+            box-shadow: 0 0 15px rgba(255, 42, 109, 0.4);
         }
 
         button {
@@ -141,8 +149,7 @@
         const userInput = document.getElementById('userInput');
         const sendBtn = document.getElementById('sendBtn');
 
-        // التوكن والموجه الجديد للـ API
-        const HUGGING_FACE_TOKEN = "HFAKeGnAi6OpYwynatgltRFbXwiiySo";
+        const HUGGING_FACE_TOKEN = "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";
         const API_ENDPOINT = "https://router.huggingface.co/v1/chat/completions";
 
         // حلقة الرمش
@@ -151,23 +158,23 @@
             setTimeout(() => { blinkState = false; }, 120);
         }, 4000);
 
-        // رسم وجه ZENITH
+        // رسم وجه ZENITH بألوان الأزرق النيوني، البنفسجي، والأحمر الداكن
         function animateFace() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const cx = 160, cy = 160;
 
-            let color = "#00f0ff";
+            let color = "#00f0ff"; // الأزرق النيوني الافتراضي
             let glowColor = "rgba(0, 240, 255, 0.5)";
 
             if (state === "speaking") {
-                color = "#00ffaa";
-                glowColor = "rgba(0, 255, 170, 0.6)";
+                color = "#7b2cbf"; // البنفسجي عند التحدث
+                glowColor = "rgba(123, 44, 191, 0.7)";
             } else if (state === "thinking") {
-                color = "#ff2a6d";
-                glowColor = "rgba(255, 42, 109, 0.6)";
+                color = "#c9184a"; // الأحمر الياقوتي عند التفكير
+                glowColor = "rgba(201, 24, 74, 0.7)";
             }
 
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = 18;
             ctx.shadowColor = glowColor;
 
             // إطار الوجه
@@ -212,7 +219,7 @@
                 const amplitude = Math.abs(Math.sin(Date.now() / 80)) * 18 + 4;
                 ctx.beginPath();
                 ctx.ellipse(cx, mouthY, 20, amplitude / 2, 0, 0, 2 * Math.PI);
-                ctx.fillStyle = "#120e16";
+                ctx.fillStyle = "#0a090c";
                 ctx.fill();
                 ctx.stroke();
             } else {
@@ -228,7 +235,7 @@
 
         animateFace();
 
-        // إرسال السؤال عبر الـ Router API المحدث
+        // إرسال السؤال ومعالجته عبر الـ API
         async function sendMessage() {
             const text = userInput.value.trim();
 
@@ -265,7 +272,7 @@
                 if (data.choices && data.choices[0] && data.choices[0].message) {
                     aiResponse = data.choices[0].message.content;
                 } else if (data.error) {
-                    aiResponse = "⚠️ خطأ في المفتاح أو الخدمة: " + (data.error.message || JSON.stringify(data.error));
+                    aiResponse = "⚠️ خطأ في الاستجابة: " + (data.error.message || JSON.stringify(data.error));
                 } else {
                     aiResponse = isArabic ? "أنا هنا لمساعدتك! كيف أستطيع خدمتك؟" : "I am here to help you! How can I assist you?";
                 }
