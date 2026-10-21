@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ZENITH :: SPEECH & AI INTERFACE</title>
+    <title>ZENITH :: AI INTERFACE</title>
     <style>
         * {
             margin: 0;
@@ -40,7 +40,7 @@
             border-radius: 50%;
             padding: 10px;
             box-shadow: 0 0 30px rgba(123, 44, 191, 0.2);
-            margin: 10px 0;
+            margin: 15px 0;
         }
 
         canvas {
@@ -57,31 +57,13 @@
             max-width: 650px;
             width: 100%;
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
             border: 1px solid rgba(0, 240, 255, 0.2);
             min-height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        .api-config {
-            display: flex;
-            gap: 10px;
-            width: 100%;
-            max-width: 650px;
-            margin-bottom: 15px;
-        }
-
-        .api-config input {
-            flex: 1;
-            padding: 8px 12px;
-            border-radius: 8px;
-            border: 1px dashed #7b2cbf;
-            background: rgba(0, 0, 0, 0.5);
-            color: #888;
-            font-size: 0.85rem;
         }
 
         .input-container {
@@ -143,12 +125,7 @@
         <canvas id="faceCanvas" width="320" height="320"></canvas>
     </div>
 
-    <!-- مكان وضع مفتاح الـ API للتحكم به دون تسريبه -->
-    <div class="api-config">
-        <input type="password" id="apiKeyInput" placeholder="أدخل مفتاح HuggingFace Token لحفظه بمتصفحك..." onchange="saveKey()">
-    </div>
-
-    <div id="status" class="status-box">✅ أهلاً بك! أنا ZENITH، أدخل مفتاحك بالأسفل ثم اسألني أي سؤال.</div>
+    <div id="status" class="status-box">✅ أهلاً بك! أنا ZENITH، اكتب سؤالك وسأجيبك فوراً.</div>
 
     <div class="input-container">
         <input type="text" id="userInput" placeholder="اكتب سؤالك هنا..." onkeydown="if(event.key==='Enter') sendMessage()">
@@ -162,22 +139,11 @@
         const ctx = canvas.getContext('2d');
         const statusLbl = document.getElementById('status');
         const userInput = document.getElementById('userInput');
-        const apiKeyInput = document.getElementById('apiKeyInput');
         const sendBtn = document.getElementById('sendBtn');
 
+        // التوكن ورابط النموذج مباشرة بالداخل
+        const HUGGING_FACE_TOKEN = "HFAKeGnAi6OpYwynatgltRFbXwiiySo";
         const MODEL_URL = "https://api-inference.huggingface.co/models/Qwen/Qwen2.5-1.5B-Instruct";
-
-        // تحميل المفتاح المحفوظ في ذاكرة المتصفح محلية
-        window.onload = () => {
-            const savedKey = localStorage.getItem('ZENITH_API_KEY');
-            if (savedKey) {
-                apiKeyInput.value = savedKey;
-            }
-        };
-
-        function saveKey() {
-            localStorage.setItem('ZENITH_API_KEY', apiKeyInput.value.trim());
-        }
 
         // حلقة الرمش
         setInterval(() => {
@@ -265,15 +231,8 @@
         // إرسال السؤال وإرجاع الإجابة من الـ API
         async function sendMessage() {
             const text = userInput.value.trim();
-            const token = apiKeyInput.value.trim();
 
             if (!text || state === "thinking") return;
-
-            if (!token) {
-                statusLbl.innerText = "⚠️ يرجى أدخال مفتاح Hugging Face Token أولاً في الخانة المخصصة!";
-                statusLbl.style.color = "#ffaa00";
-                return;
-            }
 
             userInput.value = "";
             statusLbl.innerText = `أنت: ${text}`;
@@ -287,7 +246,7 @@
                 const response = await fetch(MODEL_URL, {
                     method: "POST",
                     headers: {
-                        "Authorization": `Bearer ${token}`,
+                        "Authorization": `Bearer ${HUGGING_FACE_TOKEN}`,
                         "Content-Type": "application/json"
                     },
                     body: JSON.stringify({
@@ -303,8 +262,11 @@
                     aiResponse = data[0].generated_text;
                 } else if (data.generated_text) {
                     aiResponse = data.generated_text;
+                } else if (data.error) {
+                    // في حال كان النموذج يتحمل في الذاكرة لأول مرة
+                    aiResponse = isArabic ? "جاري تجهيز النموذج، يرجى المحاولة بعد بضع ثوانٍ..." : "Model is loading, please try again in a few seconds...";
                 } else {
-                    aiResponse = isArabic ? "أنا هنا لمساعدتك! كيف أستطيع خدمتك في هذا السؤال؟" : "I am here to help you! How can I assist you?";
+                    aiResponse = isArabic ? "أنا هنا لمساعدتك! كيف أستطيع خدمتك؟" : "I am here to help you! How can I assist you?";
                 }
 
                 statusLbl.innerText = `ZENITH: ${aiResponse}`;
@@ -320,7 +282,7 @@
             }
         }
 
-        // تحويل النص إلى صوت بالمتصفح
+        // تحويل النص إلى صوت
         function speakText(text, isArabic) {
             if ('speechSynthesis' in window) {
                 window.speechSynthesis.cancel();
